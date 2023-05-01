@@ -1,6 +1,7 @@
 package com.integrador.client.Services;
 
 import com.integrador.client.DTO.ClientDTO;
+import com.integrador.client.Exception.ClientNotFoundException;
 import com.integrador.client.Exception.HandlerResponseException;
 import com.integrador.client.Modules.Client;
 import com.integrador.client.Modules.ClientFactory.ClientFactoryImp;
@@ -9,9 +10,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Optional;
+import java.util.StringJoiner;
 
 
 @Service
@@ -22,53 +25,68 @@ public class ClientService {
     @Autowired
     private ClientFactoryImp clientFactoryImp;
 
-    public Client create(Client client) {
-        Client newClient = clientFactoryImp.createClientImp(client.getDni(), client.getNameClient(), client.getLastNameClient(), client.getPhoneClient(), client.getEmailClient(), client.getResidencyAddressClient(), client.getCityLocationClient());
-        if (newClient.getDni() != null && newClient.getDni().toString().isEmpty()) {
-            Optional<Client> tempCustomer = this.clientRepository.findById(client.getDni());
-            if (tempCustomer.isPresent()) {
-                throw new HandlerResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "DNI is rejected in database.");
+    public ClientDTO create(ClientDTO client) throws HandlerResponseException {
+        try {
+            if (anyFieldIsNull(client)) {
+                throw new HandlerResponseException(HttpStatus.BAD_REQUEST, "The following fields are required: " + missingFields(client));
             }
-        }
-
-        if (newClient.getNameClient() != null && !newClient.getNameClient().isEmpty()
-                && newClient.getLastNameClient() != null && !newClient.getLastNameClient().isEmpty()
-                && newClient.getDni() != null && newClient.getDni() instanceof Integer) {
-            return this.clientRepository.save(client);
-            //return client;
-        } else {
-            throw new HandlerResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "DNI, First Name and Last Name are required");
-
+            if (clientRepository.existsById(client.getDni())) {
+                throw new HandlerResponseException(HttpStatus.BAD_REQUEST, "DNI isn't available. ");
+            }
+            Client clientTrue = new Client(client.getDni(),client.getNameClient(),client.getLastNameClient(),client.getPhoneClient(),client.getEmailClient(),client.getResidencyAddressClient(),client.getCityLocationClient());
+            clientRepository.save(clientTrue);
+            return client;
+        } catch (HandlerResponseException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new HandlerResponseException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
-    public Optional<Client> updateClient(Integer dni, @RequestBody Client clientUpdate) {
+    private boolean anyFieldIsNull(ClientDTO client) {
+        return client.getDni() == null ||
+                !StringUtils.hasText(client.getNameClient()) ||
+                !StringUtils.hasText(client.getLastNameClient()) ||
+                !StringUtils.hasText(client.getPhoneClient()) ||
+                !StringUtils.hasText(client.getEmailClient()) ||
+                !StringUtils.hasText(client.getResidencyAddressClient()) ||
+                !StringUtils.hasText(client.getCityLocationClient());
+    }
+
+    private String missingFields(ClientDTO client) {
+        StringJoiner joiner = new StringJoiner(", ");
+        if (client.getDni() == null) joiner.add("DNI");
+        if (!StringUtils.hasText(client.getNameClient())) joiner.add("Name");
+        if (!StringUtils.hasText(client.getLastNameClient())) joiner.add("Last Name");
+        if (!StringUtils.hasText(client.getPhoneClient())) joiner.add("Phone");
+        if (!StringUtils.hasText(client.getEmailClient())) joiner.add("Email");
+        if (!StringUtils.hasText(client.getResidencyAddressClient())) joiner.add("Residency Address");
+        if (!StringUtils.hasText(client.getCityLocationClient())) joiner.add("City Location");
+        return joiner.toString();
+    }
+
+    public Optional<ClientDTO> updateClient(Integer dni, @RequestBody ClientDTO clientUpdate) {
+        if (anyFieldIsNull(clientUpdate)) {
+            throw new HandlerResponseException(HttpStatus.BAD_REQUEST, "The following fields are required: " + missingFields(clientUpdate));
+        }
         Optional<Client> client = clientRepository.findById(dni);
         if (client.isPresent()) {
             Client clientToUpdate = client.get();
-            if (clientUpdate.getNameClient() != null) {
-                clientToUpdate.setNameClient(clientUpdate.getNameClient());
-            }
-            if (clientUpdate.getLastNameClient() != null) {
-                clientToUpdate.setLastNameClient(clientUpdate.getLastNameClient());
-            }
-            if (clientUpdate.getPhoneClient() != null) {
-                clientToUpdate.setPhoneClient(clientUpdate.getPhoneClient());
-            }
-            if (clientUpdate.getEmailClient() != null) {
-                clientToUpdate.setEmailClient(clientUpdate.getEmailClient());
-            }
-            if (clientUpdate.getResidencyAddressClient() != null) {
-                clientToUpdate.setResidencyAddressClient(clientUpdate.getResidencyAddressClient());
-            }
-            if (clientUpdate.getCityLocationClient() != null) {
-                clientToUpdate.setCityLocationClient(clientUpdate.getCityLocationClient());
-            }
-            clientRepository.save(clientToUpdate);
-            return Optional.of(clientToUpdate);
+            clientToUpdate.setNameClient(clientUpdate.getNameClient());
+            clientToUpdate.setLastNameClient(clientUpdate.getLastNameClient());
+            clientToUpdate.setPhoneClient(clientUpdate.getPhoneClient());
+            clientToUpdate.setEmailClient(clientUpdate.getEmailClient());
+            clientToUpdate.setResidencyAddressClient(clientUpdate.getResidencyAddressClient());
+            clientToUpdate.setCityLocationClient(clientUpdate.getCityLocationClient());
+            Client updatedClient = clientRepository.save(clientToUpdate);
+            ClientDTO updatedClientDTO = new ClientDTO(updatedClient.getDni(), updatedClient.getNameClient(),
+                    updatedClient.getLastNameClient(), updatedClient.getPhoneClient(), updatedClient.getEmailClient(),
+                    updatedClient.getResidencyAddressClient(), updatedClient.getCityLocationClient());
+            return Optional.of(updatedClientDTO);
         }
-        return Optional.empty();
+        throw new ClientNotFoundException(HttpStatus.NOT_FOUND, "Client with DNI: " + dni + " cannot be found.");
     }
+
 
     public Boolean deleteClient(Integer dni){
         Optional<Client> client = clientRepository.findById(dni);
@@ -76,9 +94,10 @@ public class ClientService {
             clientRepository.delete(client.get());
             return true;
         } else {
-            return false;
+            throw new ClientNotFoundException(HttpStatus.NOT_FOUND, "Client with DNI: " + dni + " cannot be found.");
         }
     }
+
     public Optional<Client> researchById(int id){
         Optional<Client> customer = clientRepository.findById(id);
         if(customer.isEmpty()){
@@ -99,5 +118,4 @@ public class ClientService {
                 customer.get().getResidencyAddressClient(),
                 customer.get().getCityLocationClient()));
     }
-
 }

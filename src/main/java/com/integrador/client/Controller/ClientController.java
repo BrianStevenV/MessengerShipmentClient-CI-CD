@@ -26,10 +26,11 @@ public class ClientController {
     })
     @ApiOperation(value="client", notes= "this create a client and save in the database", response = Client.class)
     @PostMapping("/client")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Client register(@ApiParam(value = "customer object", required = true) @RequestBody Client clientCreated){
+//    @ResponseStatus(HttpStatus.CREATED)
+    public ClientDTO register(@ApiParam(value = "customer object", required = true) @RequestBody ClientDTO clientCreated){
         return clientService.create(clientCreated);
     }
+    //Empezamos cambiando Client a ClientDTO
 
     @ApiResponses(value={
             @ApiResponse( code = 201, message = "update client success"),
@@ -38,8 +39,8 @@ public class ClientController {
     })
     @ApiOperation(value="client", notes= "this update a client and save in the database", response = Client.class)
     @PutMapping("/client/{dni}")
-    public ResponseEntity<Client> updateClient(@ApiParam(value = "DNI Client", required = true) @PathVariable Integer dni, @ApiParam(value = "Client object", required = true) @RequestBody Client clientToUpdate) {
-        Optional<Client> client = clientService.updateClient(dni, clientToUpdate);
+    public ResponseEntity<ClientDTO> updateClient(@ApiParam(value = "DNI Client", required = true) @PathVariable Integer dni, @ApiParam(value = "Client object", required = true) @RequestBody ClientDTO clientToUpdate) {
+        Optional<ClientDTO> client = clientService.updateClient(dni, clientToUpdate);
         if (client.isPresent()) {
             return ResponseEntity.ok(client.get());
         } else {

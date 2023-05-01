@@ -1,10 +1,13 @@
 package com.integrador.client.DTO;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
-@Getter
+@NoArgsConstructor
+@Data
 public class ClientDTO {
     private Integer dni;
     private String nameClient;
