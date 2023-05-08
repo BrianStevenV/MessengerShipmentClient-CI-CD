@@ -56,7 +56,8 @@ Param: The param need a client registered in the database: {"dni":123}
 [GET] Check Client: A client can consult their information in the database.
 Param: The param need a client registered in the database: {"dni":123}
 
-![clientmsservice](https://user-images.githubusercontent.com/119947948/234168885-38e98f73-2237-490c-9a44-1c3afb35ccca.png)
 
+
+![ClientMessengerService](https://user-images.githubusercontent.com/119947948/236726029-e4f9982a-eb7a-4fdd-bcc6-7961f3dc23a0.jpg)
 
 
