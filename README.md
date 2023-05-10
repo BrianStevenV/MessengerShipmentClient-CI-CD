@@ -14,19 +14,20 @@ susbscription.
 #Technologies
 The project was built in: 
 
--Java
--SpringBoot
--SpringJPA
--SpringSecurity
--MySQL
--JUnit
--Swagger
--CI/CD
+- Java
+- SpringBoot
+- SpringJPA
+- SpringSecurity
+- MySQL
+- JUnit
+- Swagger
+- CI/CD
 
 # Funcionalities
 
 [POST] Create: A client can register in the database.
 RequestBody:
+```JSON
 {
 	"dni":123,
 	"nameClient":"Juan",
@@ -36,10 +37,16 @@ RequestBody:
 	"residencyAddressClient":"Carrera 97 # 23",
 	"cityLocationClient":"Bogota"
 }
+```
 
 [PUT] Update: A client can update their information.
-Param: The param need a client registered in the database: {"dni":123}
+Param: The param need a client registered in the database: 
+```JSON
+{"dni":123}
+```
 RequestBody:
+
+```JSON
 {
 	"dni":123,
 	"nameClient":"Juan",
@@ -49,12 +56,19 @@ RequestBody:
 	"residencyAddressClient":"Carrera 97 # 23",
 	"cityLocationClient":"Bogota"
 }
+```
 
 [DELETE] Delete: A client can delete their susbscription.
-Param: The param need a client registered in the database: {"dni":123}
+Param: The param need a client registered in the database: 
+```JSON
+{"dni":123}
+```
 
 [GET] Check Client: A client can consult their information in the database.
-Param: The param need a client registered in the database: {"dni":123}
+Param: The param need a client registered in the database: 
+```JSON
+{"dni":123}
+```
 
 
 
